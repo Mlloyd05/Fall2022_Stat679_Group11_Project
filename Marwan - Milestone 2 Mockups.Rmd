@@ -1,0 +1,47 @@
+---
+title: "Project Milestone 2 Mockups"
+author: "Marwan Lloyd"
+date: '2022-11-09'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+```
+
+```{r}
+#read data in
+olympics <- read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project/Independent Research Findings/Possible Datasets/athlete_events.csv")
+```
+
+
+```{r}
+aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Cricket"))),], length)
+```
+```{r}
+ggplot(aggregate(Medal ~ Age, olympics[!is.na(olympics$Medal),], length)) + 
+  geom_point(aes(Age,Medal))
+```
+
+```{r}
+ui <- 
+  navbarPage("Group 11 Shiny Prototype", collapsible = TRUE, inverse = TRUE, theme = shinytheme("spacelab"),
+             tabPanel("Olympics",
+                      sidebarLayout(sidebarPanel(selectInput("Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
+                                    mainPanel(plotOutput("olympics_plot")),
+                                 )
+             ),
+  )
+
+server <- function(input, output) { 
+  
+  output$olympics_plot <- renderPlot ({
+  ggplot(aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Sport_choice)),], length)) + geom_point(aes(x = Age, y = Medal, col = Sport))
+  
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```

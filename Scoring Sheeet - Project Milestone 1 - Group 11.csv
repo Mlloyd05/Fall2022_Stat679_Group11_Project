@@ -1,0 +1,14 @@
+Rubric Component,Possible Levels,Score,Additional Comments
+Motivation and Goals,"(9) The report demonstrates that its authors have immersed themselves in the problem context and have thoughtfully considered their visualization goals.
+(7) Describes motivation and goals in terms of broader problem context but is at times underdeveloped.
+(5) Includes some discussion of problem context but the discussion of goals is at times unclear and incomplete.
+(3) Places too much emphasis on technical elements and does not clearly articulate purpose within broader context.",8,"The goals are interesting, and it is clear that you have invested effort into understanding this problem. I have some concerns about the scope, though. Even a few isolated parts of the proposal (metrics for peak performance, integrating across data sources) already seem very challenging. I believe that you will be able to compare many approaches, but how will you assess whether a change improves or worsens the utility across all the audiences you have identified? I recommend prototyping your design using a subset of players / sports / positions that you are most familiar with. If you like your approach there, then you can generalize to the rest of the data."
+Literature Review,"(9) The report draws from a variety of complementary resources and connects concepts across them. Commentary demonstrates a deep familiarity with prior work. 
+(7) The report draws from a appropriate resources but may fail to relate them. Commentary is generally accurate.
+(5) The report draws from prior works but simply summarizes without providing any commentary.
+(3) Few if any prior work is described and no larger themes are discussed.",9,"I appreciate the way that the literature review was organized. You identified a few central themes and challenges, rather than simply writing a laundry list."
+Clarity and Style,"(7) The writing is compact, well-structured, and free from technical errors. Figures are annotated and citations are formatted consistently. 
+(5) The writing is generally well-structured and technically sound. Figures and citations displayed appropriately.
+(3) The writing is at times unstructured or verbose. Figures and references could be further polished.
+(1) The writing is in need of further revision. The appearance of figures and citations would not be acceptable for publication.",7,
+,,24,
