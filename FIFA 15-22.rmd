@@ -1,0 +1,77 @@
+---
+title: "FIFA15-22"
+author: "JinghaoLiu"
+date: "2022-11-09"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(ggthemes)
+library(ggplot2)
+```
+
+```{r, include=FALSE}
+player15 <- read_csv("Independent Research Findings/Possible Datasets/players_15.csv")
+player16 <- read_csv("Independent Research Findings/Possible Datasets/players_16.csv")
+player17 <- read_csv("Independent Research Findings/Possible Datasets/players_17.csv")
+player18 <- read_csv("Independent Research Findings/Possible Datasets/players_18.csv")
+player19 <- read_csv("Independent Research Findings/Possible Datasets/players_19.csv")
+player20 <- read_csv("Independent Research Findings/Possible Datasets/players_20.csv")
+player21 <- read_csv("Independent Research Findings/Possible Datasets/players_21.csv")
+player22 <- read_csv("Independent Research Findings/Possible Datasets/players_22.csv")
+player15$game <- "FIFA 15"
+player16$game <- "FIFA 16"
+player17$game <- "FIFA 17"
+player18$game <- "FIFA 18"
+player19$game <- "FIFA 19"
+player20$game <- "FIFA 20"
+player21$game <- "FIFA 21"
+player22$game <- "FIFA 22"
+player <- rbind(player15, player16, player17, player18, player19, player20, player21, player22)
+```
+
+```{r}
+ggplot(player, aes(x=as.factor(age), y=overall)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  geom_jitter(color="green", size=0.4, alpha=0.02)
+ggplot(player15, aes(x=as.factor(age), y=overall)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  geom_jitter(color="green", size=0.4, alpha=0.02)
+ggplot(player16, aes(x=as.factor(age), y=overall)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  geom_jitter(color="green", size=0.4, alpha=0.02)
+ggplot(player17, aes(x=as.factor(age), y=overall)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  geom_jitter(color="green", size=0.4, alpha=0.02)
+ggplot(player22, aes(x=as.factor(age), y=overall)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  geom_jitter(color="green", size=0.4, alpha=0.02)
+```
+
+```{r}
+ui <- fluidPage(
+  selectInput("League_choice", label = "League", choices = unique(player$league_name), multiple = TRUE),
+  selectInput("Position_choice", label = "Position", choices = unique(player$club_position), multiple = TRUE),
+  selectInput("Game_choice", label = "Game", choices = unique(player$game), multiple = TRUE),
+  plotOutput("score")
+)
+server <- function(input, output){
+  player_subset <- reactive({
+    player %>%
+      mutate(selected = 1 * (game %in% input$Game)) # need to select by input
+  })
+  
+  output$score <- renderPlot({
+    ggplot(player_subset(), aes(x=as.factor(age), y=overall)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  geom_jitter(color="green", size=0.4, alpha=0.02)
+  })
+}
+shinyApp(ui = ui, server = server)
+```
+
+
+
