@@ -1,0 +1,113 @@
+---
+title: "FIFA15-22"
+author: "JinghaoLiu"
+date: "2022-11-09"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(ggthemes)
+library(ggplot2)
+```
+
+```{r, include=FALSE}
+player15 <- read_csv("Independent Research Findings/Possible Datasets/players_15.csv")
+player16 <- read_csv("Independent Research Findings/Possible Datasets/players_16.csv")
+player17 <- read_csv("Independent Research Findings/Possible Datasets/players_17.csv")
+player18 <- read_csv("Independent Research Findings/Possible Datasets/players_18.csv")
+player19 <- read_csv("Independent Research Findings/Possible Datasets/players_19.csv")
+player20 <- read_csv("Independent Research Findings/Possible Datasets/players_20.csv")
+player21 <- read_csv("Independent Research Findings/Possible Datasets/players_21.csv")
+player22 <- read_csv("Independent Research Findings/Possible Datasets/players_22.csv")
+player15$game <- "FIFA 15"
+player16$game <- "FIFA 16"
+player17$game <- "FIFA 17"
+player18$game <- "FIFA 18"
+player19$game <- "FIFA 19"
+player20$game <- "FIFA 20"
+player21$game <- "FIFA 21"
+player22$game <- "FIFA 22"
+player <- rbind(player15, player16, player17, player18, player19, player20, player21, player22)
+```
+
+```{r}
+selectplayer <- function(df, gc, lc, pc){
+  df1 <- filter(df,
+                game %in% gc,
+                league_name %in% lc)
+  sett <- strsplit(df1['player_positions'][[1]], ", ")
+  label <- rep(0, length(df1[1][[1]]))
+  for(i in 1:length(df1[1][[1]])){
+    label[i] <- sum(as.integer(sett[[i]] %in% pc))
+  }
+  return(df1[as.logical(label),])
+}
+
+ui <- fluidPage(
+  fluidRow(
+    column(4, selectInput("League_choice", label = "League", choices = unique(player$league_name), multiple = TRUE)),
+    column(4, selectInput("Position_choice", label = "Position", choices = unique(player$club_position), multiple = TRUE)),
+    column(4, selectInput("Game_choice", label = "Game", choices = unique(player$game), multiple = TRUE))
+  ),
+  plotOutput("score"),
+  plotOutput("age")
+)
+server <- function(input, output){
+  output$score <- renderPlot({
+    posichoice <- unique(player$club_position)
+    leaguechoice <- unique(player$league_name)
+    gamechoice <- unique((player$game))
+    if(length(input$Position_choice) != 0){ posichoice <- input$Position_choice}
+    if(length(input$League_choice) != 0){ leaguechoice <- input$League_choice}
+    if(length(input$Game_choice) != 0){ gamechoice <- input$Game_choice}
+    
+    newlistplayer <- selectplayer(player, gamechoice, leaguechoice, posichoice)
+    len <- length(newlistplayer[[1]])
+    newlistplayer1 <- newlistplayer
+    newlistplayer1$type <- "overall"
+    newlistplayer2 <- newlistplayer
+    newlistplayer2$type <- "potential"
+    newlistplayer2$overall <- newlistplayer2$potential
+    listplayer <- rbind(newlistplayer1, newlistplayer2)
+    ggplot(data = listplayer) + 
+      geom_boxplot(aes(x=as.factor(age), y=overall, fill=type), alpha=0.2) +
+      geom_jitter(aes(x=as.factor(age), y=overall, col=type),
+                  size=min(200/sqrt((len)), 3),
+                  alpha=min(8/sqrt((len)), 0.5)) +
+      scale_fill_manual(values=c("blue", "green")) +
+      scale_color_manual(values=c("blue", "green")) +
+      ylab("Overall/Potential Score") +
+      xlab("Age")
+  })
+  output$age <- renderPlot({
+    posichoice <- unique(player$club_position)
+    leaguechoice <- unique(player$league_name)
+    gamechoice <- unique((player$game))
+    if(length(input$Position_choice) != 0){ posichoice <- input$Position_choice}
+    if(length(input$League_choice) != 0){ leaguechoice <- input$League_choice}
+    if(length(input$Game_choice) != 0){ gamechoice <- input$Game_choice}
+    
+    newlistplayer <- selectplayer(player, gamechoice, leaguechoice, posichoice)
+    len <- length(newlistplayer[[1]])
+    
+    ggplot(data = newlistplayer) + 
+      geom_boxplot(aes(x=as.factor(overall), y=age),
+                   fill="blue", alpha=0.2) +
+      geom_jitter(aes(x=as.factor(overall), y=age),
+                  col="green",
+                  size=min(200/sqrt((len)), 3),
+                  alpha=min(20/sqrt((len)), 0.5)) +
+      xlab("Overall Score") +
+      ylab("Age")
+  })
+}
+shinyApp(ui = ui, server = server)
+
+
+```
+
+
+
