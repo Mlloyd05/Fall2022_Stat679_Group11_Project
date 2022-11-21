@@ -29,7 +29,7 @@ olympics <- read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project
 aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Cricket"))),], length)
 ```
 ```{r}
-#Plots the data into subsets, with summary statistics for each and returns the result in a group by form, medals for each age.
+#Example plots the data into subsets, with summary statistics for each and returns the result in a group by form, medals for each age.
 ggplot(aggregate(Medal ~ Age, olympics[!is.na(olympics$Medal),], length)) + 
   geom_point(aes(Age,Medal))
 ```
@@ -85,7 +85,7 @@ shinyApp(ui = ui, server = server)
 ## Checking gender differences
 
 ```{r}
-#This plot documents points based on age, sport and gender, with separate columns by sport, and shape by gender.
+#This example plot documents points based on age, sport and gender, with separate columns by sport, and shape by gender.
 ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Football"))),], length)) + 
   geom_point(aes(Age,Medal, col = Sport, shape = Sex))
 ```
@@ -96,7 +96,7 @@ brks <- seq(-200, 200, 50)
 lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
 #The above code adds sequenced labels to the graph
 
-#This plot creates bars based on age, sport and sex, with the fill based on sex, out of just canoeing and football as the sports. The gendered bars also go in opposite directions.
+#This example plot creates bars based on age, sport and sex, with the fill based on sex, out of just canoeing and football as the sports. The gendered bars also go in opposite directions.
 ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Football"))),], length),
        aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
          geom_bar(stat = "identity", width = .6) +   # draw the bars
