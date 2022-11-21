@@ -15,7 +15,7 @@ library(shiny)
 library(tidyverse)
 library(ggplot2)
 
-bpl = read_csv("BPL_Dataset.csv")
+bpl = read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project/Vis_Hosting/BPL_Vis/Shiny_Data/BPL_Dataset.csv")
 col = colnames(bpl)
 pot = col[7:50]
 ui <- fluidPage(
