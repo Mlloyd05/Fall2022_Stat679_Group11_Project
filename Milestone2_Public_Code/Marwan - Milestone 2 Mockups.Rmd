@@ -25,14 +25,17 @@ olympics <- read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project
 
 
 ```{r}
+#Splits the data into subsets, with summary statistics for each and returns the result in a group by form, this one by age and sport.
 aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Cricket"))),], length)
 ```
 ```{r}
+#Example plots the data into subsets, with summary statistics for each and returns the result in a group by form, medals for each age.
 ggplot(aggregate(Medal ~ Age, olympics[!is.na(olympics$Medal),], length)) + 
   geom_point(aes(Age,Medal))
 ```
 
 ```{r General Mockup}
+#Establishes the ui with the navigation bar and the two layouts, one general olympics, and one focused on gender.
 ui <- 
   navbarPage("Group 11 Shiny Prototype", collapsible = TRUE, inverse = TRUE, theme = shinytheme("spacelab"),
              tabPanel("General Olympics",
@@ -47,15 +50,17 @@ ui <-
              )
   )
 
+
 server <- function(input, output) { 
-  
+  #The below code renders the plot and connects with the ui object, based on the sports selected it produces various color coded dot graphs, colored by sport.
   output$olympics_plot <- renderPlot ({
   ggplot(aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Sport_choice)),], length)) + geom_point(aes(x = Age, y = Medal, col = Sport))
   })
-    
+    #The below code adds labels to the graph.
     brks <- seq(-200, 200, 50)
 lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
   
+  #This is a gender based plot which plots bars in either direction based on gender and fills color based on gender based on the sport selected.
   output$Gender_olympics_plot <- renderPlot ({
   ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Gender_Sport_choice)),], length),
        aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
@@ -80,6 +85,7 @@ shinyApp(ui = ui, server = server)
 ## Checking gender differences
 
 ```{r}
+#This example plot documents points based on age, sport and gender, with separate columns by sport, and shape by gender.
 ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Football"))),], length)) + 
   geom_point(aes(Age,Medal, col = Sport, shape = Sex))
 ```
@@ -88,7 +94,9 @@ ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (
 ```{r}
 brks <- seq(-200, 200, 50)
 lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
+#The above code adds sequenced labels to the graph
 
+#This example plot creates bars based on age, sport and sex, with the fill based on sex, out of just canoeing and football as the sports. The gendered bars also go in opposite directions.
 ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Football"))),], length),
        aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
          geom_bar(stat = "identity", width = .6) +   # draw the bars
@@ -107,6 +115,7 @@ ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (
 
 
 ```{r Gender Mockup}
+#This is another navigation bar based UI for the prototype.
 ui <- 
   navbarPage("Group 11 Shiny Prototype", collapsible = TRUE, inverse = TRUE, theme = shinytheme("spacelab"),
              tabPanel("Olympics",
@@ -118,9 +127,11 @@ ui <-
 
 server <- function(input, output) { 
   
+  #More sequenced labels
   brks <- seq(-200, 200, 50)
 lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
   
+  #This plot object within the server once again creates the gendered bar objects in opposite directions, with each age represented, in a given sport selected.
   output$olympics_plot <- renderPlot ({
   ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Sport_choice)),], length),
        aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 

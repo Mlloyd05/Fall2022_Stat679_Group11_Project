@@ -14,6 +14,7 @@ library(ggplot2)
 ```
 
 ```{r, include=FALSE}
+#Loading each dataset
 player15 <- read_csv("Independent Research Findings/Possible Datasets/players_15.csv")
 player16 <- read_csv("Independent Research Findings/Possible Datasets/players_16.csv")
 player17 <- read_csv("Independent Research Findings/Possible Datasets/players_17.csv")
@@ -34,6 +35,7 @@ player <- rbind(player15, player16, player17, player18, player19, player20, play
 ```
 
 ```{r}
+#Subfunction which selects players given a series of inputs.
 selectplayer <- function(df, gc, lc, pc){
   df1 <- filter(df,
                 game %in% gc,
@@ -46,6 +48,7 @@ selectplayer <- function(df, gc, lc, pc){
   return(df1[as.logical(label),])
 }
 
+#Defines UI
 ui <- fluidPage(
   fluidRow(
     column(4, selectInput("League_choice", label = "League", choices = unique(player$league_name), multiple = TRUE)),
@@ -56,6 +59,7 @@ ui <- fluidPage(
   plotOutput("age")
 )
 server <- function(input, output){
+  #Renders a plot object based on the position, league, and game selected.
   output$score <- renderPlot({
     posichoice <- unique(player$club_position)
     leaguechoice <- unique(player$league_name)
@@ -64,6 +68,7 @@ server <- function(input, output){
     if(length(input$League_choice) != 0){ leaguechoice <- input$League_choice}
     if(length(input$Game_choice) != 0){ gamechoice <- input$Game_choice}
     
+    #Changes the list of players based on what has been selected.
     newlistplayer <- selectplayer(player, gamechoice, leaguechoice, posichoice)
     len <- length(newlistplayer[[1]])
     newlistplayer1 <- newlistplayer
@@ -72,6 +77,7 @@ server <- function(input, output){
     newlistplayer2$type <- "potential"
     newlistplayer2$overall <- newlistplayer2$potential
     listplayer <- rbind(newlistplayer1, newlistplayer2)
+    #Makes a boxplot, jitter also adds points with a bit of variation to avoid overplotting, as well.
     ggplot(data = listplayer) + 
       geom_boxplot(aes(x=as.factor(age), y=overall, fill=type), alpha=0.2) +
       geom_jitter(aes(x=as.factor(age), y=overall, col=type),
@@ -81,7 +87,9 @@ server <- function(input, output){
       scale_color_manual(values=c("blue", "green")) +
       ylab("Overall/Potential Score") +
       xlab("Age")
+      #Above is aesthetic details.
   })
+  #Renders another boxplot with jitter variation based on a list of players based on criteria that has been chosen by the user, such as game,league,position.
   output$age <- renderPlot({
     posichoice <- unique(player$club_position)
     leaguechoice <- unique(player$league_name)
@@ -102,6 +110,7 @@ server <- function(input, output){
                   alpha=min(20/sqrt((len)), 0.5)) +
       xlab("Overall Score") +
       ylab("Age")
+      #Labels and graphs overall as compared to age.
   })
 }
 shinyApp(ui = ui, server = server)

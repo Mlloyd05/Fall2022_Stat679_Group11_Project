@@ -18,6 +18,7 @@ library(ggplot2)
 bpl = read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project/Vis_Hosting/BPL_Vis/Shiny_Data/BPL_Dataset.csv")
 col = colnames(bpl)
 pot = col[7:50]
+#Defining UI, based on the 4 inputs.
 ui <- fluidPage(
   selectInput("Club_choice", label = "Club", choices = unique(bpl$Club), multiple = TRUE),
   selectInput("Position_choice", label = "Position", choices = unique(bpl$Position), multiple = TRUE),
@@ -28,22 +29,26 @@ ui <- fluidPage(
   
 )
 server <- function(input, output,session){
+  #Subsetting the data based on club and position.
   bpl_subset <- reactive({
     bpl %>%
       mutate(selected = 1 * (Club %in% input$Club_choice) * (Position %in% input$Position_choice)) %>%
       filter(selected == 1)
   })
+  #These variables are for later use in labelling
   xVarName <- reactive({
     input$Metric_choice
   })
+  #This one too
   yVarName <- reactive({
     input$Metric_choice2
   })
-  
+  #Plotting based on the aes_string function that allows the selection of x and y axes by the user for more customizability.
   output$Effectiveness <- renderPlot({
     ggplot(bpl_subset()) +
       geom_point(aes_string(input$Metric_choice,input$Metric_choice2))
   })
+  #Renders a table of the data points that are a part of the subset.
   output$Table <- renderTable(bpl_subset())
 }
 shinyApp(ui = ui, server = server)
