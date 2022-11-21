@@ -1,0 +1,141 @@
+---
+title: "Project Milestone 2 Mockups"
+author: "Marwan Lloyd"
+date: '2022-11-09'
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(ggthemes)
+library(ggplot2)
+```
+
+## General Mockup
+
+
+```{r}
+#read data in
+olympics <- read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project/Independent Research Findings/Possible Datasets/athlete_events.csv")
+```
+
+
+```{r}
+aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Cricket"))),], length)
+```
+```{r}
+ggplot(aggregate(Medal ~ Age, olympics[!is.na(olympics$Medal),], length)) + 
+  geom_point(aes(Age,Medal))
+```
+
+```{r General Mockup}
+ui <- 
+  navbarPage("Group 11 Shiny Prototype", collapsible = TRUE, inverse = TRUE, theme = shinytheme("spacelab"),
+             tabPanel("General Olympics",
+                      sidebarLayout(sidebarPanel(selectInput("Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
+                                    mainPanel(plotOutput("olympics_plot")),
+                                 )
+             ),
+             tabPanel("Gender Breakdown",
+                      sidebarLayout(sidebarPanel(selectInput("Gender_Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
+                                    mainPanel(plotOutput("Gender_olympics_plot")),
+                                 )
+             )
+  )
+
+server <- function(input, output) { 
+  
+  output$olympics_plot <- renderPlot ({
+  ggplot(aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Sport_choice)),], length)) + geom_point(aes(x = Age, y = Medal, col = Sport))
+  })
+    
+    brks <- seq(-200, 200, 50)
+lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
+  
+  output$Gender_olympics_plot <- renderPlot ({
+  ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Gender_Sport_choice)),], length),
+       aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
+         geom_bar(stat = "identity", width = .6) +   # draw the bars
+                              scale_y_continuous(breaks = brks,   # Breaks
+                                                 labels = lbls) + # Labels
+                              coord_flip() +  # Flip axes
+                              labs(title="Comparing Gender Data") +
+                              theme_tufte() +  # Tufte theme from ggfortify
+                              theme(plot.title = element_text(hjust = .5), 
+                                    axis.ticks = element_blank()) +   # Centre plot title
+                              scale_fill_brewer(palette = "Dark2")  # Color palette
+  
+  })
+  
+  
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+## Checking gender differences
+
+```{r}
+ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Football"))),], length)) + 
+  geom_point(aes(Age,Medal, col = Sport, shape = Sex))
+```
+
+
+```{r}
+brks <- seq(-200, 200, 50)
+lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
+
+ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Football"))),], length),
+       aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
+         geom_bar(stat = "identity", width = .6) +   # draw the bars
+                              scale_y_continuous(breaks = brks,   # Breaks
+                                                 labels = lbls) + # Labels
+                              coord_flip() +  # Flip axes
+                              labs(title="Comparing Gender Data") +
+                              theme_tufte() +  # Tufte theme from ggfortify
+                              theme(plot.title = element_text(hjust = .5), 
+                                    axis.ticks = element_blank()) +   # Centre plot title
+                              scale_fill_brewer(palette = "Dark2")  # Color palette
+
+
+```
+
+
+
+```{r Gender Mockup}
+ui <- 
+  navbarPage("Group 11 Shiny Prototype", collapsible = TRUE, inverse = TRUE, theme = shinytheme("spacelab"),
+             tabPanel("Olympics",
+                      sidebarLayout(sidebarPanel(selectInput("Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
+                                    mainPanel(plotOutput("olympics_plot")),
+                                 )
+             ),
+  )
+
+server <- function(input, output) { 
+  
+  brks <- seq(-200, 200, 50)
+lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
+  
+  output$olympics_plot <- renderPlot ({
+  ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Sport_choice)),], length),
+       aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
+         geom_bar(stat = "identity", width = .6) +   # draw the bars
+                              scale_y_continuous(breaks = brks,   # Breaks
+                                                 labels = lbls) + # Labels
+                              coord_flip() +  # Flip axes
+                              labs(title="Comparing Gender Data") +
+                              theme_tufte() +  # Tufte theme from ggfortify
+                              theme(plot.title = element_text(hjust = .5), 
+                                    axis.ticks = element_blank()) +   # Centre plot title
+                              scale_fill_brewer(palette = "Dark2")  # Color palette
+  
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
