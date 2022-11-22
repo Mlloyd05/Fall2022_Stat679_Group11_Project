@@ -1,6 +1,9 @@
 # Fall2022_Stat679_Group11_Project
 Fall 2022 Stat 679 Group Project Repository for Group 11
 
+Contact: 
+For any issues please contact Marwan Lloyd (Marwan.Lloyd@wisc.edu / melloyd2@wisc.edu ) 
+
 Folder contents: 
 
 - Independent Research Findings: Links to Datasets, possible data, articles and literature on our subject and tangential ones 
