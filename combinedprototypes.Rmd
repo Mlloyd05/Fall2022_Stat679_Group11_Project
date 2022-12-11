@@ -1,6 +1,6 @@
 ---
 title: "combinedprototypes"
-author: "Skylar Shafer"
+author: "Marwan Lloyd, Skylar Shafer, Max Zou"
 date: "2022-12-10"
 output: html_document
 ---
@@ -28,32 +28,6 @@ line_plot <- function(df) {
   ylab("Number of Athletes")
 }
 ```
-```{r}
-### definition of app
-ui <- fluidPage(
-  titlePanel("Olympic Athletes Age Visualization"),
-  selectInput("Sport", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE),
-  #pickerInput("Sport", "Sport", Sport, options = list(`actions-box` = TRUE),multiple = T),
-  #pickerInput("pos", "Position", pos, options = list(`actions-box` = TRUE),multiple = T),
-  sliderInput("Year", "Year", min = min(olympics$Year), max = max(olympics$Year), c(2000, 2005), sep = ""),
-  plotOutput("line")
-)
-server <- function(input, output) {
-  olympics_subset <- reactive({
-    olympics %>%
-      mutate(selected = (
-        #(Pos %in% input$pos) &
-        (Sport %in% input$Sport) &
-        (Year >= input$Year[1]) &
-        (Year <= input$Year[2])
-      ))
-  })
-  output$line <- renderPlot({
-    line_plot(olympics[olympics$Sport %in% input$Sport & olympics$Year >= input$Year[1] & olympics$Year <= input$Year[2],])
-  })
-}
-shinyApp(ui, server)
-```
 
 ```{r}
 #Splits the data into subsets, with summary statistics for each and returns the result in a group by form, this one by age and sport.
@@ -65,71 +39,130 @@ aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Spor
 #Establishes the ui with the navigation bar and the two layouts, one general olympics, and one focused on gender.
 col = colnames(olympics)
 pot = c(col[4:6],col[10])
-ui <- 
-  navbarPage("Group 11 Shiny Prototype", collapsible = TRUE, inverse = TRUE, theme = shinytheme("spacelab"),
-             tabPanel("Olympic Sports - By Age",
-                      sidebarLayout(sidebarPanel(selectInput("Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
-                                    mainPanel(plotOutput("olympics_plot")),
-                                 )
-             ),
-             tabPanel("Sport-Gender Breakdown by Age",
-                      sidebarLayout(sidebarPanel(selectInput("Gender_Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
-                                    mainPanel(plotOutput("Gender_olympics_plot")),
-                                 )
-             ),
-             tabPanel("Athlete Analysis",
-                      fluidRow(
-    column(4, selectInput("sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)),
-    column(4, selectInput("team_choice", label = "Team", choices = unique(olympics$Team), multiple = TRUE))
-  ),
-  selectInput("Metric_choice", label = "PlayerMetricX", choices = pot),
-  selectInput("Metric_choice2", label = "PlayerMetricY", choices = pot),
-  plotOutput("Effectiveness"),
-  tableOutput("Table"))
-             
+ui <-
+  navbarPage(
+    "Group 11 Shiny Prototype",
+    collapsible = TRUE,
+    inverse = TRUE,
+    theme = shinytheme("spacelab"),
+    tabPanel(
+      "Olympic Sports - Age vs. Medal",
+      sidebarLayout(sidebarPanel(
+        selectInput("Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE, selected = c('Basketball', 'Football') ) ),
+      mainPanel(plotOutput("olympics_plot")),)
+    ),
+    tabPanel(
+      "Sport-Gender Breakdown by Age",
+      sidebarLayout(sidebarPanel(
+        selectInput("Gender_Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)
+      ),
+      mainPanel(plotOutput("Gender_olympics_plot")),)
+    ),
+    tabPanel(
+      "Olympics Athelete Age Distribution",
+      sidebarLayout(
+        sidebarPanel(
+          style = paste0("height: 27vh; overflow-y: auto;"),
+          selectInput("Sport", label = "Sport", choices = unique(olympics$Sport), 
+                      multiple = TRUE, selected = c('Basketball', 'Football') ),
+          sliderInput("Year", "Year", min = min(olympics$Year), max = max(olympics$Year), c(1980, 2010), sep = "" ),
+          plotOutput("line")
+        ),
+        mainPanel(
+          plotOutput("olympics_age_dist_plot")
+        ),
+      )
+      
+    ),
+    tabPanel(
+      "Athlete Analysis",
+      fluidRow(column(
+        4,
+        selectInput("sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE ) ),
+      column(
+        4,
+        selectInput("team_choice", label = "Team", choices = unique(olympics$Team), multiple = TRUE)
+      )),
+      selectInput("Metric_choice", label = "PlayerMetricX", choices = pot),
+      selectInput("Metric_choice2", label = "PlayerMetricY", choices = pot),
+      plotOutput("Effectiveness"),
+      tableOutput("Table")
+    )
+    
+    
   )
 
-server <- function(input, output) { 
+server <- function(input, output) {
   #The below code renders the plot and connects with the ui object, based on the sports selected it produces various color coded dot graphs, colored by sport.
   output$olympics_plot <- renderPlot ({
-  ggplot(aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Sport_choice)),], length)) + geom_point(aes(x = Age, y = Medal, col = Sport))
+    ggplot(aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) &
+                                                      (olympics$Sport %in% input$Sport_choice)), ], length)) + geom_point(aes(x = Age, y = Medal, col = Sport))
   })
-    #The below code adds labels to the graph.
-    brks <- seq(-200, 200, 50)
-lbls = paste0(as.character(c(seq(200, 0, -50), seq(50, 200, 50))))
+  #The below code adds labels to the graph.
+  brks <- seq(-200, 200, 50)
+  lbls = paste0(as.character(c(seq(200, 0,-50), seq(50, 200, 50))))
   
   #This is a gender based plot which plots bars in either direction based on gender and fills color based on gender based on the sport selected.
   output$Gender_olympics_plot <- renderPlot ({
-  ggplot(aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% input$Gender_Sport_choice)),], length),
-       aes(x = Age, y = ifelse(Sex=="M",Medal*-1,Medal), fill = Sex)) + 
-         geom_bar(stat = "identity", width = .6) +   # draw the bars
-                              scale_y_continuous(breaks = brks,   # Breaks
-                                                 labels = lbls) + # Labels
-                              coord_flip() +  # Flip axes
-                              labs(title="Comparing Gender Data") +
-                              theme_tufte() +  # Tufte theme from ggfortify
-                              theme(plot.title = element_text(hjust = .5), 
-                                    axis.ticks = element_blank()) +   # Centre plot title
-                              scale_fill_brewer(palette = "Dark2")  # Color palette
-  
+    ggplot(
+      aggregate(Medal ~ Age + Sport + Sex, olympics[(!is.na(olympics$Medal) &
+                                                       (olympics$Sport %in% input$Gender_Sport_choice)), ], length),
+      aes(
+        x = Age,
+        y = ifelse(Sex == "M", Medal * -1, Medal),
+        fill = Sex
+      )
+    ) +
+      geom_bar(stat = "identity", width = .6) +   # draw the bars
+      scale_y_continuous(breaks = brks,   # Breaks
+                         labels = lbls) + # Labels
+      coord_flip() +  # Flip axes
+      labs(title = "Comparing Gender Data") +
+      theme_tufte() +  # Tufte theme from ggfortify
+      theme(plot.title = element_text(hjust = .5),
+            axis.ticks = element_blank()) +   # Centre plot title
+      scale_fill_brewer(palette = "Dark2")  # Color palette
+    
   })
   oly_subset <- reactive({
     olympics %>%
       mutate(selected = 1 * (Team %in% input$team_choice) * (Sport %in% input$sport_choice)) %>%
       filter(selected == 1)
   })
+  
   #Plotting based on the aes_string function that allows the selection of x and y axes by the user for more customizability.
   output$Effectiveness <- renderPlot({
     ggplot(oly_subset()) +
-      geom_jitter(aes_string(input$Metric_choice,input$Metric_choice2,color="Medal",shape="Sex"),width=.1,height=.1)})
+      geom_jitter(
+        aes_string(
+          input$Metric_choice,
+          input$Metric_choice2,
+          color = "Medal",
+          shape = "Sex"
+        ),
+        width = .1,
+        height = .1
+      )
+  })
   #Renders a table of the data points that are a part of the subset.
   output$Table <- renderTable(oly_subset())
   
+  #Age distribution plots
+  olympics_subset <- reactive({
+    olympics %>%
+      mutate(selected = (
+        (Sport %in% input$Sport) &
+          (Year >= input$Year[1]) &
+          (Year <= input$Year[2])
+      ))
+  })
+  output$olympics_age_dist_plot <- renderPlot({
+    line_plot(olympics[olympics$Sport %in% input$Sport & olympics$Year >= input$Year[1] & olympics$Year <= input$Year[2],])
+  })
   
 }
 shinyApp(ui = ui, server = server)
 ```
-
 
 
 
