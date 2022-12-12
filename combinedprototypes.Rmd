@@ -15,7 +15,7 @@ library(shinythemes)
 library(tidyverse)
 library(ggthemes)
 library(ggplot2)
-olympics <- read_csv("athlete_events.csv")
+olympics <- read_csv("/Users/marwanlloyd/Github/Fall2022_Stat679_Group11_Project/Vis_Hosting/General_Olympics/Shiny_Data/athlete_events.csv")
 ```
 
 
@@ -32,6 +32,14 @@ line_plot <- function(df) {
 ```{r}
 #Splits the data into subsets, with summary statistics for each and returns the result in a group by form, this one by age and sport.
 aggregate(Medal ~ Age + Sport, olympics[(!is.na(olympics$Medal) & (olympics$Sport %in% c("Canoeing", "Cricket"))),], length)
+```
+
+```{r}
+agged_sport_data <- cbind(aggregate(Age ~ Sport, olympics, mean), aggregate(ID ~ Sport, olympics, length)$ID, aggregate(Event ~ Sport, olympics, function(Event) length(unique(Event)))$Event)
+colnames(agged_sport_data) = c("Sport", "Age", "Count", "Unique_Events")
+agged_sport_data$Athletes_Per_Event <- agged_sport_data$Count / agged_sport_data$Unique_Events
+agged_sport_data <- agged_sport_data[order(agged_sport_data$Age), ]  # sort
+agged_sport_data$Sport <- factor(agged_sport_data$Sport, levels = agged_sport_data$Sport) 
 ```
 
 
@@ -54,7 +62,7 @@ ui <-
     tabPanel(
       "Sport-Gender Breakdown by Age",
       sidebarLayout(sidebarPanel(
-        selectInput("Gender_Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE)
+        selectInput("Gender_Sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE, selected = 'Basketball')
       ),
       mainPanel(plotOutput("Gender_olympics_plot")),)
     ),
@@ -78,15 +86,19 @@ ui <-
       "Athlete Analysis",
       fluidRow(column(
         4,
-        selectInput("sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE ) ),
+        selectInput("sport_choice", label = "Sport", choices = unique(olympics$Sport), multiple = TRUE , selected = 'Basketball') ),
       column(
         4,
-        selectInput("team_choice", label = "Team", choices = unique(olympics$Team), multiple = TRUE)
+        selectInput("team_choice", label = "Team", choices = unique(olympics$Team), multiple = TRUE, selected = 'United States')
       )),
-      selectInput("Metric_choice", label = "PlayerMetricX", choices = pot),
-      selectInput("Metric_choice2", label = "PlayerMetricY", choices = pot),
+      selectInput("Metric_choice", label = "PlayerMetricX", choices = pot, selected = 'Age'),
+      selectInput("Metric_choice2", label = "PlayerMetricY", choices = pot, selected = 'Height'),
       plotOutput("Effectiveness"),
       tableOutput("Table")
+    ),
+    tabPanel(
+      "Age vs. Athlete Count/Event",
+      plotOutput("athlete_distribution")
     )
     
     
@@ -117,7 +129,7 @@ server <- function(input, output) {
       scale_y_continuous(breaks = brks,   # Breaks
                          labels = lbls) + # Labels
       coord_flip() +  # Flip axes
-      labs(title = "Comparing Gender Data") +
+      labs(title = "Comparing Gender Data", x = "Medals", y = "Age" ) +
       theme_tufte() +  # Tufte theme from ggfortify
       theme(plot.title = element_text(hjust = .5),
             axis.ticks = element_blank()) +   # Centre plot title
@@ -160,8 +172,30 @@ server <- function(input, output) {
     line_plot(olympics[olympics$Sport %in% input$Sport & olympics$Year >= input$Year[1] & olympics$Year <= input$Year[2],])
   })
   
+  output$athlete_distribution <- renderPlot({ggplot(agged_sport_data, aes(x=Sport, y=Athletes_Per_Event, fill = Age)) + 
+  geom_bar(stat="identity", width=.5) + 
+  labs(title="Ordered Bar Chart", 
+       subtitle="Avg Age Vs Athlete Per Event Count", 
+       caption="source: Olympics Dataset") + 
+  theme(axis.text.x = element_text(angle=90, vjust=0.6)) + scale_fill_gradient2(low = "red", mid = "orange", high = "blue", midpoint = 12) + labs(y = "Athletes per Event")})
+  
 }
 shinyApp(ui = ui, server = server)
+```
+
+```{r}
+agged_sport_data <- cbind(aggregate(Age ~ Sport, olympics, mean), aggregate(ID ~ Sport, olympics, length)$ID, aggregate(Event ~ Sport, olympics, function(Event) length(unique(Event)))$Event)
+colnames(agged_sport_data) = c("Sport", "Age", "Count", "Unique_Events")
+agged_sport_data$Athletes_Per_Event <- agged_sport_data$Count / agged_sport_data$Unique_Events
+agged_sport_data <- agged_sport_data[order(agged_sport_data$Age), ]  # sort
+agged_sport_data$Sport <- factor(agged_sport_data$Sport, levels = agged_sport_data$Sport) 
+
+ggplot(agged_sport_data, aes(x=Sport, y=Athletes_Per_Event, fill = Age)) + 
+  geom_bar(stat="identity", width=.5) + 
+  labs(title="Ordered Bar Chart", 
+       subtitle="Avg Age Vs Athlete Per Event Count", 
+       caption="source: mpg") + 
+  theme(axis.text.x = element_text(angle=90, vjust=0.6)) + scale_fill_gradient2(low = "red", mid = "orange", high = "blue", midpoint = 12) + labs(y = "Athletes per Event")
 ```
 
 
