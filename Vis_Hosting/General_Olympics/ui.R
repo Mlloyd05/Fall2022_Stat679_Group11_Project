@@ -77,6 +77,12 @@ ui <-
     tabPanel(
       "Age vs. Athlete Count/Event",
       plotOutput("athlete_distribution")
+    ),
+    tabPanel(
+      "About", p("This shiny app is maintained by Marwan Lloyd '23. For any questions, concerns, 
+                 or feedback please reach out him at either of the below emails:"),
+      tags$address("Marwan.Lloyd@Wisc.edu"), tags$address("Melloyd2@Wisc.edu"),
+      p("Code for this Shiny App can be found at the link below:"), tags$a(href = "https://github.com/Mlloyd05/Fall2022_Stat679_Group11_Project/tree/main/Vis_Hosting/General_Olympics", "Github")
     )
     
     
