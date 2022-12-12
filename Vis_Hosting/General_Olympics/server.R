@@ -48,7 +48,7 @@ server <- function(input, output) {
       scale_y_continuous(breaks = brks,   # Breaks
                          labels = lbls) + # Labels
       coord_flip() +  # Flip axes
-      labs(title = "Comparing Gender Data", x = "Medals", y = "Age" ) +
+      labs(title = "Comparing Gender Data", x = "Age", y = "Medals" ) +
       theme(plot.title = element_text(hjust = .5),
             axis.ticks = element_blank()) +   # Centre plot title
       scale_fill_brewer(palette = "Dark2")  # Color palette
